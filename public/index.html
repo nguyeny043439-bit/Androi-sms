@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Android Surveillance Hub</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', 'Inconsolata', monospace;
+            background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%);
+            color: #00ff00;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #0a0f1c 0%, #1c2526 100%);
+            padding: 12px 20px;
+            box-shadow: 0 4px 20px rgba(0, 255, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid #00ff00;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            margin: 0;
+        }
+        
+        #status {
+            text-align: center;
+            padding: 8px 16px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            margin: 12px auto;
+            max-width: 250px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #00ff00;
+        }
+        
+        #retryButton {
+            display: none;
+            margin: 8px auto;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #00ff00 0%, #00cc00 100%);
+            color: #0d0d0d;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+        
+        #retryButton:hover {
+            background: linear-gradient(135deg, #00cc00 0%, #009900 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 0, 0.4);
+        }
+        
+        .main-content {
+            padding: 20px;
+            width: 100%;
+            margin: 0;
+        }
+        
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 30px;
+            height: calc(100vh - 140px);
+        }
+        
+        .video-section {
+            grid-row: 1 / span 4;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        .video-container {
+            background: linear-gradient(135deg, #0a0f1c 0%, #1c2526 100%);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        
+        .video-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .video-header h2 {
+            color: #00ff00;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .live-indicator {
+            background: #ff0000;
+            color: #0d0d0d;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: auto;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .remote-video {
+            width: 100%;
+            height: 100%;
+            background: #0d0d0d;
+            border-radius: 12px;
+            border: 2px solid #00ff00;
+            box-shadow: 0 4px 20px rgba(0, 255, 0, 0.3);
+            object-fit: cover;
+        }
+        
+        .content-right {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            height: 100%;
+        }
+        
+        .row {
+            display: flex;
+            gap: 18px;
+        }
+        
+        .row.single {
+            display: block;
+        }
+        
+        .row .card {
+            flex: 1;
+        }
+        
+        .card {
+            background: linear-gradient(135deg, #0a0f1c 0%, #1c2526 100%);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 255, 0, 0.3);
+        }
+        
+        .notifications-card {
+            height: 200px;
+        }
+        
+        .call-logs-card {
+            height: 600px;
+        }
+        
+        .sms-messages-card {
+            height: 600px;
+        }
+        
+        .gps-location-card {
+            height: 400px;
+        }
+        
+        .debug-log-card {
+            height: 140px;
+        }
+        
+        .card h2 {
+            color: #00ff00;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .card-icon {
+            width: 20px;
+            height: 20px;
+            background: #00ff00;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #0d0d0d;
+        }
+        
+        #notifications {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #notificationList {
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #00ff00 #0a0f1c;
+        }
+        
+        #callLogs, #smsMessages {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #callLogList, #smsList {
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #00ff00 #0a0f1c;
+        }
+        
+        #notifications::-webkit-scrollbar,
+        #callLogs::-webkit-scrollbar,
+        #smsMessages::-webkit-scrollbar,
+        #notificationList::-webkit-scrollbar,
+        #callLogList::-webkit-scrollbar,
+        #smsList::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #notifications::-webkit-scrollbar-track,
+        #callLogs::-webkit-scrollbar-track,
+        #smsMessages::-webkit-scrollbar-track,
+        #notificationList::-webkit-scrollbar-track,
+        #callLogList::-webkit-scrollbar-track,
+        #smsList::-webkit-scrollbar-track {
+            background: #0a0f1c;
+            border-radius: 3px;
+        }
+        
+        #notifications::-webkit-scrollbar-thumb,
+        #callLogs::-webkit-scrollbar-thumb,
+        #smsMessages::-webkit-scrollbar-thumb,
+        #notificationList::-webkit-scrollbar-thumb,
+        #callLogList::-webkit-scrollbar-thumb,
+        #smsList::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border-radius: 3px;
+        }
+        
+        .notification, .call-log, .sms-message {
+            background: linear-gradient(135deg, #1a1a1a 0%, #262626 100%);
+            padding: 14px;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            border: 1px solid #00ff00;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        
+        .notification:hover, .call-log:hover, .sms-message:hover {
+            background: linear-gradient(135deg, #00cc00 0%, #009900 100%);
+            border-color: #00ff00;
+            transform: translateX(4px);
+        }
+        
+        .notification p, .call-log p, .sms-message p {
+            margin: 4px 0;
+            color: #00ff00;
+        }
+        
+        .timestamp {
+            font-size: 0.75rem;
+            color: #00cc00;
+            font-weight: 500;
+        }
+        
+        #map {
+            height: 100%;
+            background: linear-gradient(135deg, #0a0f1c 0%, #1c2526 100%);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #map h2 {
+            color: #00ff00;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        #mapContainer {
+            flex: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 255, 0, 0.3);
+            min-height: 200px;
+        }
+        
+        #debugLog {
+            background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%);
+            padding: 20px;
+            border-radius: 16px;
+            height: 100%;
+            overflow-y: auto;
+            font-size: 0.8rem;
+            border: 1px solid #00ff00;
+            box-shadow: 0 8px 32px rgba(0, 255, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #debugLog h2 {
+            color: #00ff00;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        #logMessages {
+            font-family: 'Courier New', monospace;
+            color: #00ff00;
+            line-height: 1.4;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .video-section {
+                grid-row: auto;
+            }
+            
+            .row {
+                flex-direction: column;
+            }
+            
+            .notifications-card,
+            .call-logs-card,
+            .sms-messages-card,
+            .gps-location-card,
+            .debug-log-card {
+                height: auto;
+                min-height: 120px;
+            }
+            
+            #container {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .card {
+                padding: 16px;
+            }
+            
+            #container {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+    </style>
+
+    <!-- Loader overlay styles (namespaced to avoid conflicts) -->
+    <style>
+        #ashLoadingOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background:
+              radial-gradient(60% 60% at 50% 50%, rgba(0,255,0,0.06), transparent 70%),
+              linear-gradient(135deg, #0b0f0b 0%, #0f1510 100%);
+            display: grid;
+            place-items: center;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity .6s ease, visibility .6s ease;
+        }
+        #ashLoadingOverlay.ash-hide {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .ash-hud {
+            width: min(980px, 90vw);
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 24px;
+            color: #b6ffb6;
+            text-shadow: 0 0 8px rgba(0,255,0,0.3);
+            font-family: 'Courier New', 'Inconsolata', monospace;
+        }
+
+        /* Left column (stages) */
+        .ash-left {
+            text-align: left;
+            font-size: 14px;
+            line-height: 2;
+            color: #66ff66;
+        }
+        .ash-left div {
+            opacity: .4;
+            transition: opacity .4s ease, color .4s ease, text-shadow .4s ease;
+        }
+        .ash-left .ash-active {
+            opacity: 1;
+            color: #a6ffa6;
+            text-shadow: 0 0 6px #00ff00;
+        }
+
+        /* Center orb & statuses */
+        .ash-center {
+            position: relative;
+            text-align: center;
+        }
+        .ash-orb {
+            width: 180px;
+            height: 180px;
+            border: 2px solid #00ff00;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            box-shadow: 0 0 18px #00ff00, inset 0 0 18px rgba(0,255,0,0.35);
+            animation: ash-spin 7s linear infinite;
+            position: relative;
+        }
+        .ash-orb::after {
+            content: "";
+            position: absolute;
+            inset: 18px;
+            border-radius: 50%;
+            border: 2px dashed rgba(0,255,0,0.35);
+            animation: ash-spin 5s linear reverse infinite;
+        }
+        @keyframes ash-spin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+
+        .ash-progress {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            margin: 8px auto 0;
+        }
+        .ash-ring {
+            width: 100%;
+            height: 100%;
+            border: 6px solid rgba(0,255,0,0.18);
+            border-top: 6px solid #a6ffa6;
+            border-radius: 50%;
+            animation: ash-progress 7s linear forwards;
+            box-shadow: 0 0 12px rgba(0,255,0,0.25);
+        }
+        @keyframes ash-progress {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+
+        .ash-status {
+            position: absolute;
+            top: 230px;
+            left: 0;
+            right: 0;
+            margin: auto;
+            font-size: 18px;
+            text-transform: uppercase;
+            opacity: 0;
+        }
+        /* Sequence timings */
+        .ash-status:nth-child(2) { animation: ash-show 1s linear 0s forwards; }
+        .ash-status:nth-child(3) { animation: ash-show 1s linear 1.2s forwards; }
+        .ash-status:nth-child(4) { animation: ash-show 1s linear 2.4s forwards; }
+        .ash-status:nth-child(5) { animation: ash-show 1s linear 3.6s forwards; }
+        .ash-status:nth-child(6) {
+            animation: ash-show 1.8s linear 5s forwards;
+            color: #baffba;
+            text-shadow: 0 0 12px #00ff00;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        @keyframes ash-show {
+            0% { opacity: 0; }
+            10%, 90% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Right column (telemetry) */
+        .ash-right {
+            text-align: left;
+            font-size: 14px;
+            line-height: 2;
+            color: #66ff66;
+        }
+        .ash-tile { opacity: .9; margin: 6px 0; }
+        .ash-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 34px;
+        }
+        .ash-bar {
+            width: 6px;
+            background: #00ff00;
+            box-shadow: 0 0 6px rgba(0,255,0,0.6);
+            transform-origin: bottom;
+            animation: ash-signal 1.8s infinite;
+            opacity: .8;
+        }
+        .ash-bar:nth-child(1) { height: 8px;  animation-delay: 0s;   }
+        .ash-bar:nth-child(2) { height: 14px; animation-delay: .15s; }
+        .ash-bar:nth-child(3) { height: 20px; animation-delay: .3s;  }
+        .ash-bar:nth-child(4) { height: 26px; animation-delay: .45s; }
+        .ash-bar:nth-child(5) { height: 32px; animation-delay: .6s;  }
+        @keyframes ash-signal {
+            0%, 100% { opacity: .4; transform: scaleY(.6); }
+            50%      { opacity: 1;  transform: scaleY(1.1); }
+        }
+        .ash-latency { animation: ash-flicker 2s infinite; }
+        @keyframes ash-flicker {
+            0%, 100% { opacity: .7; }
+            50%      { opacity: 1; }
+        }
+
+        @media (max-width: 700px) {
+            .ash-hud {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 16px;
+            }
+            .ash-left, .ash-right { text-align: center; }
+            .ash-status { top: 220px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cinematic Loader Overlay -->
+    <div id="ashLoadingOverlay" aria-hidden="true">
+        <div class="ash-hud">
+            <!-- Left Column -->
+            <div class="ash-left">
+                <div id="ash-stage1">• Acquiring Link</div>
+                <div id="ash-stage2">• Handshake — Authorization</div>
+                <div id="ash-stage3">• Stabilizing Channel</div>
+                <div id="ash-stage4">• Connected</div>
+            </div>
+
+            <!-- Center Orb + Status -->
+            <div class="ash-center">
+                <div class="ash-orb"></div>
+                <div class="ash-status">INITIALIZING…</div>
+                <div class="ash-status">ACQUIRING LINK</div>
+                <div class="ash-status">HANDSHAKE — AUTHORIZATION</div>
+                <div class="ash-status">STABILIZING CHANNEL</div>
+                <div class="ash-status">CONNECTED — SECURE SESSION ACTIVE</div>
+                <div class="ash-progress"><div class="ash-ring"></div></div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="ash-right">
+                <div class="ash-tile">SIGNAL:</div>
+                <div class="ash-bars">
+                    <div class="ash-bar"></div>
+                    <div class="ash-bar"></div>
+                    <div class="ash-bar"></div>
+                    <div class="ash-bar"></div>
+                    <div class="ash-bar"></div>
+                </div>
+                <div class="ash-tile ash-latency">LATENCY: 014 ms</div>
+                <div class="ash-tile">PATH: ROUTE • (obfuscated)</div>
+            </div>
+        </div>
+    </div>
+    <!-- /Cinematic Loader Overlay -->
+
+    <div class="header">
+        <h1>Android Surveillance Hub</h1>
+        <div id="status">Connecting to server...</div>
+        <button id="retryButton">Retry Connection</button>
+    </div>
+    
+    <div class="main-content">
+        <div class="main-layout">
+            <div class="video-section">
+                <div class="video-container">
+                    <div class="video-header">
+                        <h2>Live Front Camera Feed</h2>
+                        <div class="live-indicator">● LIVE</div>
+                    </div>
+                    <video id="remoteVideoFront" class="remote-video" autoplay playsinline></video>
+                </div>
+                <div class="video-container">
+                    <div class="video-header">
+                        <h2>Live Back Camera Feed</h2>
+                        <div class="live-indicator">● LIVE</div>
+                    </div>
+                    <video id="remoteVideoBack" class="remote-video" autoplay playsinline></video>
+                </div>
+            </div>
+            
+            <div class="content-right">
+                <!-- Row 1: Notifications -->
+                <div class="row single">
+                    <div class="card notifications-card flex max-h-50 overflow-y-auto">
+                        <h2>
+                            <div class="card-icon">🔔</div>
+                            Notifications
+                        </h2>
+                        <div id="notifications">
+                            <div id="notificationList"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Row 2: Call Logs and SMS Messages -->
+                <div class="row">
+                    <div class="card call-logs-card flex max-h-100 overflow-y-auto">
+                        <h2>
+                            <div class="card-icon">📞</div>
+                            Call Logs
+                        </h2>
+                        <div id="callLogs">
+                            <div id="callLogList"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="card sms-messages-card flex max-h-100 overflow-y-auto">
+                        <h2>
+                            <div class="card-icon">💬</div>
+                            SMS Messages
+                        </h2>
+                        <div id="smsMessages">
+                            <div id="smsList"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Row 3: File Explorer -->
+                <div class="row single">
+                    <div class="card file-explorer-card" style="height: 500px; display: flex; flex-direction: column;">
+                        <h2>
+                            <div class="card-icon">📂</div>
+                            File Explorer
+                        </h2>
+                        <div style="margin-bottom: 10px; display: flex; gap: 10px;">
+                            <button id="fsBackBtn" style="padding: 4px 12px; background: #374151; color: #fff; border: 1px solid #4b5563; border-radius: 4px; cursor: pointer;">⬆ Up</button>
+                            <input type="text" id="fsPathInput" value="/storage/emulated/0/" style="flex: 1; background: #111827; border: 1px solid #374151; color: #00ff00; padding: 4px 8px; border-radius: 4px; font-family: monospace;">
+                            <button id="fsGoBtn" style="padding: 4px 12px; background: #059669; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Go</button>
+                        </div>
+                        <div id="fileList" style="flex: 1; overflow-y: auto; background: #111827; border: 1px solid #374151; border-radius: 8px; padding: 10px;">
+                            <div style="color: #6b7280; text-align: center; margin-top: 20px;">Connect to device to list files</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 4: GPS Location -->
+                <div class="row single">
+                    <div id="map" class="gps-location-card">
+                        <h2>
+                            <div class="card-icon">📍</div>
+                            GPS Location
+                        </h2>
+                        <div id="mapContainer"></div>
+                    </div>
+                </div>
+                
+                <!-- Row 4: Debug Logs -->
+                <div class="row single">
+                    <div id="debugLog" class="debug-log-card">
+                        <h2>Debug Log</h2>
+                        <div id="logMessages"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tailwind (browser build) and libs -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <!-- Loader overlay logic (non-intrusive) -->
+    <script>
+      (function() {
+        const overlay = document.getElementById('ashLoadingOverlay');
+        if (!overlay) return;
+
+        // Highlight stages in sequence
+        setTimeout(()=> document.getElementById("ash-stage1")?.classList.add("ash-active"), 900);
+        setTimeout(()=> document.getElementById("ash-stage2")?.classList.add("ash-active"), 1900);
+        setTimeout(()=> document.getElementById("ash-stage3")?.classList.add("ash-active"), 3000);
+        setTimeout(()=> document.getElementById("ash-stage4")?.classList.add("ash-active"), 4200);
+
+        const MIN_SHOW_MS = 4000;  // minimum time the overlay stays visible
+        const HARD_TIMEOUT_MS = 10000; // safety fallback
+        const start = performance.now();
+
+        function hideOverlay() {
+          const elapsed = performance.now() - start;
+          const delay = Math.max(0, MIN_SHOW_MS - elapsed);
+          setTimeout(() => {
+            overlay.classList.add('ash-hide');
+            overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
+          }, delay);
+        }
+
+        // Auto-hide on full load, with safety fallback
+        window.addEventListener('load', hideOverlay);
+        setTimeout(hideOverlay, HARD_TIMEOUT_MS);
+
+        // Optional: expose a manual hook your client.js can call after socket connects
+        window._closeLoadingOverlay = hideOverlay;
+      })();
+    </script>
+
+    <!-- Your existing app script (unchanged) -->
+    <script src="client.js"></script>
+</body>
+</html>
